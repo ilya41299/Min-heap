@@ -12,14 +12,13 @@ struct Node
 	std::string value;
 	long long int key;
 	Node(long long int, std::string);
-	~Node() = default;
 };
 
 Node::Node(long long int set_key, std::string set_value) :key{ set_key }, value{ set_value } {}
 
 class MinHeap 
 {
-	std::vector<Node*> array;
+	std::vector<Node> array;
 	std::unordered_map<long long int, long long int> map;
 	void heapify(long long int i);
 	void up(long long int index);
@@ -40,18 +39,18 @@ void MinHeap::heapify(long long int i)
 	long long int left = 2 * i + 1;
 	long long int right = 2 * i + 2;
 	long long int tiny;
-	if (left < array.size() && array[left]->key < array[i]->key)
+	if (left < array.size() && array[left].key < array[i].key)
 		tiny = left;
 	else tiny = i;
-	if (right < array.size() && array[right]->key < array[tiny]->key) 
+	if (right < array.size() && array[right].key < array[tiny].key) 
 		tiny = right;
 	if (tiny != i)
 	{
 		std::swap(array[i], array[tiny]);
-		map.erase(map.find(array[i]->key));
-		map.erase(map.find(array[tiny]->key));
-		map.insert(std::make_pair(array[i]->key, i));
-		map.insert(std::make_pair(array[tiny]->key, tiny));
+		map.erase(map.find(array[i].key));
+		map.erase(map.find(array[tiny].key));
+		map.insert(std::make_pair(array[i].key, i));
+		map.insert(std::make_pair(array[tiny].key, tiny));
 		heapify(tiny);
 	}
 }
@@ -59,13 +58,13 @@ void MinHeap::heapify(long long int i)
 void MinHeap::up(long long int index)
 {
 	long long int parent_index = (index - 1) / 2;
-	while ((index > 0) && array[index]->key < array[parent_index]->key)
+	while ((index > 0) && array[index].key < array[parent_index].key)
 	{
 		std::swap(array[index], array[parent_index]);
-		map.erase(map.find(array[parent_index]->key));
-		map.erase(map.find(array[index]->key));
-		map.insert(std::make_pair(array[index]->key, index));
-		map.insert(std::make_pair(array[parent_index]->key, parent_index));// 
+		map.erase(map.find(array[parent_index].key));
+		map.erase(map.find(array[index].key));
+		map.insert(std::make_pair(array[index].key, index));
+		map.insert(std::make_pair(array[parent_index].key, parent_index));
 		index = parent_index;
 		parent_index = (parent_index - 1) / 2;
 	}
@@ -74,41 +73,41 @@ void MinHeap::up(long long int index)
 void MinHeap::add(long long int K, std::string&& V)
 {
 	if (std::get<0>(search(K))) throw std::logic_error("double add");
-	Node* new_node = new Node(K, V);
+	Node new_node(K, V);
 	long long int i = array.size();
-	array.push_back(nullptr);
+	array.push_back(new_node);
 	long long int index_parent = (i - 1) / 2;
-	while (i >= 1 && array[index_parent]->key >= K) 
+
+	while (i >= 1 && array[index_parent].key >= K) 
 	{
 		array[i] = array[index_parent];
-		map.erase(map.find(array[index_parent]->key));
-		map.insert(std::make_pair(array[i]->key, i));
+		map.erase(map.find(array[index_parent].key));
+		map.insert(std::make_pair(array[i].key, i));
 		i = index_parent;
 		index_parent = (i - 1) / 2;
 	}
 	array[i] = new_node;
-	map.insert(std::make_pair(new_node->key, i));
+	map.insert(std::make_pair(new_node.key, i));
 }
 
 void MinHeap::set(long long int K, std::string&& V)
 {
 	std::tuple<bool, long long int, std::string> vertex = search(K);
 	if (std::get<0>(vertex) == false) throw std::logic_error("heap have not vertex");
-	array[std::get<1>(vertex)]->value = V;
+	array[std::get<1>(vertex)].value = V;
 }
 
 std::tuple<long long int, long long int, std::string> MinHeap::min()
 {
 	if (array.size() == 0) throw std::logic_error("heap is empty");
-	return std::make_tuple(array[0]->key,0 , array[0]->value);
+	return std::make_tuple(array[0].key,0 , array[0].value);
 }
 
 std::tuple<long long int, long long int, std::string> MinHeap::max()
 {
 	if (array.size() == 0) throw std::logic_error("heap is empty");
-	
-	Node *node = *std::max_element(array.begin(), array.end(), [](Node * i, Node * j) {return i->key < j->key; });
-	return std::make_tuple(node->key, (map[node->key]), node->value);
+	Node node = *std::max_element(array.begin(), array.end(), [](Node  i, Node  j) {return i.key < j.key; });
+	return std::make_tuple(node.key, (map[node.key]), node.value);
 }
 
 std::tuple<bool, long long int, std::string> MinHeap::search(long long int K)
@@ -116,7 +115,7 @@ std::tuple<bool, long long int, std::string> MinHeap::search(long long int K)
 	auto iterator = map.find(K);
 	if (iterator != map.end()) 
 	{
-		return std::make_tuple(true, (*iterator).second, array[(*iterator).second]->value);
+		return std::make_tuple(true, (*iterator).second, array[(*iterator).second].value);
 	}
 	else return std::make_tuple(false, 0, "");
 }
@@ -128,18 +127,16 @@ void MinHeap::Delete(long long int K)
 	long long int index = (*iterator).second;
 	if (index == array.size() - 1) 
 	{
-		//delete array[index];
 		map.erase(map.find(K));
 		array.pop_back();
 		return;
 	}
 	std::swap(array[index], array[array.size() - 1]);
-	map.erase(map.find(array[index]->key));
-	map.erase(map.find(array[array.size() - 1]->key));
-	map.insert(std::make_pair(array[index]->key, index));
-	//delete array[array.size() - 1];
+	map.erase(map.find(array[index].key));
+	map.erase(map.find(array[array.size() - 1].key));
+	map.insert(std::make_pair(array[index].key, index));
 	array.pop_back();
-	if (array[index]->key < array[(index - 1) / 2]->key) 
+	if (array[index].key < array[(index - 1) / 2].key) 
 		up(index);
 	else heapify(index);
 }
@@ -147,9 +144,9 @@ void MinHeap::Delete(long long int K)
 std::pair<long long int, std::string> MinHeap::extract()
 {
 	if (array.size() == 0) throw std::logic_error("heap is empty");
-	Node* min = array[0];
-	std::pair<long long int, std::string> extr_vertex = std::make_pair(min->key, min->value);
-	Delete(array[0]->key);
+	Node min = array[0];
+	std::pair<long long int, std::string> extr_vertex = std::make_pair(min.key, min.value);
+	Delete(array[0].key);
 	return extr_vertex;
 }
 
@@ -157,11 +154,11 @@ std::string MinHeap::print()
 {
 	if (array.size() == 0) return "_";
 	size_t counter_h = 1;
-	std::string out = '[' + std::to_string(array[0]->key) + ' ' + array[0]->value + ']';
+	std::string out = '[' + std::to_string(array[0].key) + ' ' + array[0].value + ']';
 	if (array.size() > 1) out += '\n';
 	for (size_t i = 1; i < array.size(); i++)
 	{
-		out+= '[' + std::to_string(array[i]->key) + ' ' + array[i]->value + ' ' + std::to_string(array[(i-1)/2]->key) + ']';
+		out+= '[' + std::to_string(array[i].key) + ' ' + array[i].value + ' ' + std::to_string(array[(i-1)/2].key) + ']';
 		if ((((i + 1) & (i + 2)) == 0) && i < array.size() - 1)
 		{
 			out += '\n';
@@ -184,9 +181,10 @@ std::string MinHeap::print()
 
 int main()
 {
-	std::string temp_1="add 8 10\n add 4 14\n add 7 15\n add 9 11\n add 3 13\n add 5 16\n add 88 1\n add 11 2\n add 6 18\n add 1 22\n print\n", temp_2, temp_3, output = "";
+	std::string temp_1, temp_2, temp_3, output = "";
 	MinHeap My_heap;
-	//std::getline(std::cin, temp_1, '\0');
+
+	std::getline(std::cin, temp_1, '\0');
 	std::istringstream line_stream(temp_1);
 	while (line_stream >> temp_1)
 	{
@@ -256,5 +254,3 @@ int main()
 	std::cout << output;
 	return 0;
 }
-
-
