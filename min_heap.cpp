@@ -12,6 +12,7 @@ struct Node
 	std::string value;
 	long long int key;
 	Node(long long int, std::string);
+	~Node() = default;
 };
 
 Node::Node(long long int set_key, std::string set_value) :key{ set_key }, value{ set_value } {}
@@ -127,7 +128,7 @@ void MinHeap::Delete(long long int K)
 	long long int index = (*iterator).second;
 	if (index == array.size() - 1) 
 	{
-		delete array[index];
+		//delete array[index];
 		map.erase(map.find(K));
 		array.pop_back();
 		return;
@@ -136,7 +137,7 @@ void MinHeap::Delete(long long int K)
 	map.erase(map.find(array[index]->key));
 	map.erase(map.find(array[array.size() - 1]->key));
 	map.insert(std::make_pair(array[index]->key, index));
-	delete array[array.size() - 1];
+	//delete array[array.size() - 1];
 	array.pop_back();
 	if (array[index]->key < array[(index - 1) / 2]->key) 
 		up(index);
@@ -183,9 +184,9 @@ std::string MinHeap::print()
 
 int main()
 {
-	std::string temp_1, temp_2, temp_3, output = "";
+	std::string temp_1="add 8 10\n add 4 14\n add 7 15\n add 9 11\n add 3 13\n add 5 16\n add 88 1\n add 11 2\n add 6 18\n add 1 22\n print\n", temp_2, temp_3, output = "";
 	MinHeap My_heap;
-	std::getline(std::cin, temp_1, '\0');
+	//std::getline(std::cin, temp_1, '\0');
 	std::istringstream line_stream(temp_1);
 	while (line_stream >> temp_1)
 	{
@@ -255,3 +256,5 @@ int main()
 	std::cout << output;
 	return 0;
 }
+
+
